@@ -1,1 +1,0 @@
-# SpartaCampB-8
