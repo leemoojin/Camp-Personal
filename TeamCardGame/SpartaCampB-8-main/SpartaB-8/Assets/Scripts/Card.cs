@@ -40,24 +40,32 @@ public class Card : MonoBehaviour
     public void OpenCard()
     {
         if (!(Time.timeScale > 0.0f)) return;
-        ColorUtility.TryParseHtmlString("#C0C0C0", out var color); // 16진수 색상코드(옅은 회색)를 Color로 변환
-        back.GetComponent<SpriteRenderer>().color = color; // 뒤집었던 카드 색상 변경
         if (GameManager.Instance.secondCard != null) return;
 
-        _audioSource.PlayOneShot(clip);
-
         anim.SetBool(IsOpen, true);
-
         front.SetActive(true);
         back.SetActive(false);
 
         if (GameManager.Instance.firstCard == null)
         {
             GameManager.Instance.firstCard = this;
+            _audioSource.PlayOneShot(clip);
+            ColorUtility.TryParseHtmlString("#C0C0C0", out var color); // 16진수 색상코드(옅은 회색)를 Color로 변환
+            back.GetComponent<SpriteRenderer>().color = color; // 뒤집었던 카드 색상 변경
         }
         else
         {
             GameManager.Instance.secondCard = this;
+
+            if (GameManager.Instance.firstCard == GameManager.Instance.secondCard)
+            {
+                GameManager.Instance.secondCard = null;
+                return;
+            }
+
+            _audioSource.PlayOneShot(clip);
+            ColorUtility.TryParseHtmlString("#C0C0C0", out var color); // 16진수 색상코드(옅은 회색)를 Color로 변환
+            back.GetComponent<SpriteRenderer>().color = color; // 뒤집었던 카드 색상 변경
             GameManager.Instance.Matched();
         }
     }
@@ -70,6 +78,9 @@ public class Card : MonoBehaviour
     private void DestroyCardInvoke()
     {
         Destroy(gameObject);
+        GameManager.Instance.firstCard = null;
+        GameManager.Instance.secondCard = null;
+        GameManager.Instance.MatchTimeOver();
     }
 
     public void CloseCard()
@@ -80,8 +91,10 @@ public class Card : MonoBehaviour
     public void CloseCardInvoke()
     {
         anim.SetBool(IsOpen, false);
-
         front.SetActive(false);
         back.SetActive(true);
+        GameManager.Instance.firstCard = null;
+        GameManager.Instance.secondCard = null;
+        GameManager.Instance.MatchTimeOver();
     }
 }
